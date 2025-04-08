@@ -1,0 +1,57 @@
+SELECT 
+    tc.CONSTRAINT_NAME,
+    tc.CONSTRAINT_TYPE,
+    kcu.COLUMN_NAME,
+    NULL AS DEFINITION,
+    NULL AS REFERENCED_TABLE,
+    NULL AS REFERENCED_COLUMN
+FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+    ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+WHERE tc.TABLE_NAME = {table}
+
+UNION ALL
+
+SELECT 
+    cc.name AS CONSTRAINT_NAME,
+    'CHECK' AS CONSTRAINT_TYPE,
+    col.name AS COLUMN_NAME,
+    cc.definition AS DEFINITION,
+    NULL AS REFERENCED_TABLE,
+    NULL AS REFERENCED_COLUMN
+FROM sys.check_constraints cc
+JOIN sys.columns col ON cc.parent_object_id = col.object_id AND cc.parent_column_id = col.column_id
+JOIN sys.tables t ON t.object_id = cc.parent_object_id
+WHERE t.name = {table}
+
+UNION ALL
+
+
+SELECT 
+    dc.name AS CONSTRAINT_NAME,
+    'DEFAULT' AS CONSTRAINT_TYPE,
+    col.name AS COLUMN_NAME,
+    dc.definition AS DEFINITION,
+    NULL AS REFERENCED_TABLE,
+    NULL AS REFERENCED_COLUMN
+FROM sys.default_constraints dc
+JOIN sys.columns col ON dc.parent_object_id = col.object_id AND dc.parent_column_id = col.column_id
+JOIN sys.tables t ON t.object_id = dc.parent_object_id
+WHERE t.name = {table}
+
+UNION ALL
+
+SELECT 
+    fk.name AS CONSTRAINT_NAME,
+    'FOREIGN KEY' AS CONSTRAINT_TYPE,
+    parent_col.name AS COLUMN_NAME,
+    NULL AS DEFINITION,
+    ref_table.name AS REFERENCED_TABLE,
+    ref_col.name AS REFERENCED_COLUMN
+FROM sys.foreign_keys fk
+JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+JOIN sys.tables parent_table ON parent_table.object_id = fk.parent_object_id
+JOIN sys.columns parent_col ON parent_col.column_id = fkc.parent_column_id AND parent_col.object_id = parent_table.object_id
+JOIN sys.tables ref_table ON ref_table.object_id = fk.referenced_object_id
+JOIN sys.columns ref_col ON ref_col.column_id = fkc.referenced_column_id AND ref_col.object_id = ref_table.object_id
+WHERE parent_table.name = {table}
