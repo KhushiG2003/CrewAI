@@ -1,1 +1,13 @@
 f""" SELECT col.name AS ColumnName, typ.name AS DataType, col.max_length, col.is_nullable, col.is_identity, CASE WHEN pk.colid IS NOT NULL THEN 1 ELSE 0 END AS IsPrimaryKey FROM sys.columns col INNER JOIN sys.types typ ON col.user_type_id = typ.user_type_id INNER JOIN sys.objects obj ON col.object_id = obj.object_id LEFT JOIN (SELECT ic.object_id, ic.column_id AS colid FROM sys.indexes i INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id WHERE i.is_primary_key = 1) pk ON col.object_id = pk.object_id AND col.column_id = pk.colid WHERE obj.name = '{table}' """
+
+***************************************************************************************
+constraints = {}
+for _, row in df.iterrows():
+    constraints[row["ColumnName"]] = {
+        "data_type": row["DataType"],
+        "max_length": row["max_length"],
+        "nullable": bool(row["is_nullable"]),
+        "primary_key": bool(row["IsPrimaryKey"]),
+        "autoincrement": bool(row["is_identity"])
+    }
+**********************************************************************************************
