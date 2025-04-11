@@ -119,6 +119,6 @@ for table_name in tables:
     data = pd.read_csv(io.StringIO(clean_csv))
 
     # Save the DataFrame to a CSV file
-    data.to_csv("latest_individual_card_data.csv", index=False)
+    data.to_csv("table_name.csv", index=False)
 
     print("\nFinal Result:\n", result)
