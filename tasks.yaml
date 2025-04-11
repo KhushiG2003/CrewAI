@@ -1,0 +1,97 @@
+
+decompose_question_task:
+  description: >
+    Generate SQL queries that helps to answer the following question:
+    {user_question}
+  expected_output: >
+    A list of sql queries that helps to answer the question
+
+table_analysis_task:
+  description: >
+    For the database:{database_name} answer the question: {user_question}, by using appropriate tools.
+  expected_output: >
+    Provide a simple response in tabular format.
+
+chart_generation_task:
+  description: >
+    Convert the tabular data is previous respone to json format to use the tool for generating charts based on the data.
+    Determine the most appropriate charts to be shown.
+    Give a unique filename to each of the charts to be saved.
+  expected_output: >
+    File Name of the charts created and a brief of each chart which include key insights and meaningful observations.
+    
+
+select_relevant_schema_task:
+  description: >
+    Give me a list of tables and columns from Database: {database_name}. 
+    Please continue to provide complete data and Do NOT stop with partial output saying "This continues for all tables retrieved...".    
+  expected_output: >
+    CSV format: Provide the table name, columns and its details(inluding Name, Data Type(length), NULL status etc), Primary Key and Foriegn Keys marked clearly.
+    Do NOT stop with partial output saying "This continues for all tables retrieved...".
+
+select_relevant_column_values:
+  description: >
+    Sample string columns in the database: {database_name} and search for values that help to answer the following question:
+    
+  expected_output: >
+    List only the relevant values in json format.
+
+
+data_profiling_task:
+  description: >
+    The Data Profiling Specialist Agent will analyze structured and unstructured data for the {user_question} to detect PII, classify it by type, and perform schema and relationship mapping.
+    This involves automating the detection of primary and foreign key relationships, re-validating them and adding the appropriate primary, foreign key wherever necessary for comprehensive test data profiling.
+  expected_output: >
+    PII Detection Output: A structured list of detected PII elements with classification (e.g. financial data, health data etc).
+    Schema Analysis Output: Metadata details of tables, columns, data types, indexes, and identified key relationships (primary and foreign keys).
+    Do NOT make up data other than what is provided. If NO data is provided mention "No relevant data found". 
+
+pii_sensitivity_risk_assessment_report_generation_task:
+  description: >
+    This report assesses the sensitivity level of each detected PII category based on the type, frequency, and potential risk if exposed. The goal is to help organizations prioritize data protection efforts based on risk levels associated with different PII types.
+  expected_output: >
+    PII Summary Table: A table listing detected PII elements, categorized by type (e.g., financial, health) with sensitivity ratings (low, medium, high).
+    Risk Score Analysis: A risk score for each PII type based on sensitivity, volume, and regulatory requirements.
+    Risk Heat Map: A visual heat map that highlights high-risk PII categories, allowing quick identification of critical data requiring enhanced protection measures.
+    Recommendations: Actionable recommendations for securing high-risk PII (e.g., encryption, masking).
+
+compliance_alignment_report_task:
+  description: >
+    This report evaluates PII handling in alignment with specific regulatory requirements, such as GDPR, HIPAA, and PCI DSS. It indicates areas where compliance gaps may exist and provides suggestions for improvement.
+  expected_output: >
+    Compliance Checklist Table: A table showing compliance status (compliant, partially compliant, non-compliant) for each PII type concerning regulatory standards.
+    Gap Analysis Summary: A list of non-compliant data attributes, including descriptions of specific regulatory requirements not met.
+    Compliance Risk Matrix: A visual representation of PII categories mapped to compliance requirements, highlighting high-risk non-compliance areas.
+    Remediation Actions: Suggested actions to address non-compliance issues, such as access restrictions, data masking, or enhanced logging.
+
+pii_data_distribution_chart_generation_task:
+  description: >
+    Generate the charts mentioned below to provide an overview of the distribution and frequency of PII across datasets, which helps in identifying data clusters with higher sensitivity or risk.
+      Distribution Chart: A bar chart showing the count of each PII type across datasets (e.g., name, address, SSN, email).
+      PII Frequency Analysis: Statistical data on the frequency of each PII type, indicating datasets with high PII concentration.
+      Cluster Map of High-Risk Data Locations: A map indicating clusters of datasets or databases with high volumes of sensitive PII, which could require stricter access and security controls.
+      Insights and Observations: Key observations on distribution patterns, such as unexpected clusters of sensitive PII in low-security 
+  expected_output: >
+     A set of charts that visually represent the key insights ready to be integrated into the final report.
+
+final_report_assembly:
+  description: >
+    Assemble the final report by integrating the schema analysis, reports, tables and charts generated in all
+    the previous tasks.
+    
+    The report should have tables and relevant charts side by side with an appropriate size.
+
+    The report should be formatted for easy consumption by stakeholders, providing valuable insights.
+  expected_output: >
+    A comprehensive final report that integrates tables, charts, and actionable
+    insights into a single document, formatted for stakeholders.
+    Don't add '```' or '```markdown' to the report.
+
+#refine_sql_task:
+#  description: >
+#    Execute the given queries to answer the following question:
+#    {user_question}
+#    In case of error, fix them.
+#  expected_output: >
+#    Full Answer markdown formatted and step by step logical approach to reach the final answer of the question.
+#    Do not interpret the findings.
