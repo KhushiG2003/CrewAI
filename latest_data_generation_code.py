@@ -1,19 +1,20 @@
+from crewai import Agent, Crew, Task, LLM
+from crewai.tools import tool
 from langchain_community.utilities.sql_database import SQLDatabase
 from urllib.parse import quote_plus
-from crewai.tools import tool
-from crewai import Agent, Crew, Process, Task
-from crewai_tools.tools import NL2SQLTool
 from langchain_community.tools.sql_database.tool import (
     InfoSQLDatabaseTool,
     ListSQLDatabaseTool,
     QuerySQLCheckerTool,
     QuerySQLDataBaseTool,
 )
+import io
+import pandas as pd
 
-server = "inblrvm78094602"
-database = "GenAICreditcard"
-username = "Test"
-password = "Capgemini@1234"
+server = ""
+database = ""
+username = ""
+password = ""
 
 db_uri = f"mssql+pyodbc://{quote_plus(username)}:{quote_plus(password)}@{server}/{quote_plus(database)}?driver=ODBC+Driver+17+for+SQL+Server"
 
@@ -42,7 +43,7 @@ def execute_sql(sql_query: str,result_as_answer=True) -> str:
     
 
 # Configure LiteLLM correctly
-from crewai import LLM
+
 llm = LLM(
             model = "gpt-4o",
             base_url = "https://genaitcgazuregpt.openai.azure.com/",
@@ -55,8 +56,8 @@ table_name = "INDIVIDUAL_CARDHOLDER"
 num_records = 50  # Specify the number of records you want to generate
 
 
-Sql_data_agent = Agent(
-    role = "Database operator",
+database_operator_agent = Agent(
+    role = "DatabaseOperatorAgent",
     goal = f"Extract data and schema of the {table_name} table. Understand the primary and foreign key relationships and constraints.",
     backstory = '''An expert in database processing tasks.
                    You are skilled in understanding database relationships.
@@ -69,7 +70,7 @@ Sql_data_agent = Agent(
 )
                                         
 # Define an AI Agent
-researcher = Agent(
+data_generator_agent = Agent(
     role = "DataGeneratorAgent",
     goal = f"If the table has foreign keys, ensure that the columns generate values from primary key values in another table. Generate exactly {num_records} new records.",
     backstory = '''An expert in data generation using GPT models.
@@ -80,7 +81,7 @@ researcher = Agent(
 
 understand_table_task = Task(
     description = "Extract schema, columns, keys, and data from the table. Provide an understanding of the relationships between tables.",
-    agent = Sql_data_agent,
+    agent = database_operator_agent,
     expected_output = '''Provide details about the keys present in the table. If there are foreign keys, specify the source table.
     Describe the type of data each column contains and include data from the table. Additionally, 
     extract data from the parent table to generate values for the foreign key columns.'''
@@ -92,14 +93,14 @@ print("----")
 data_generation_task = Task(
     description='''Generate new testing data for all the given columns using schema, data summary, and records provided for analysis.
     When generating data, if the table has foreign keys, ensure you extract IDs from the parent table and use those IDs for the foreign key column values.''',
-    agent=researcher,
+    agent=data_generator_agent,
     context=[understand_table_task],
     expected_output=f"Generate exactly {num_records} new records for all table columns based on the table schema. Ensure that foreign key values in the child table match existing primary key values in the parent table to maintain referential integrity. give output in csv format."
 )
 
 
 # Create a Crew and Run
-crew = Crew(agents=[Sql_data_agent,researcher], 
+crew = Crew(agents=[database_operator_agent,data_generator_agent], 
             tasks=[understand_table_task,data_generation_task], 
             # process=Process.sequential,
             # planning=True,
@@ -107,14 +108,16 @@ crew = Crew(agents=[Sql_data_agent,researcher],
            )
 result = crew.kickoff()
 
-import io
-import pandas as pd
-csv_data = str(result).strip('```csv\n').strip('```')
+lines = str(result).strip().split('\n')
+csv_lines = [line for line in lines if ',' in line]
+
+clean_csv = "\n".join(csv_lines)
+
 
 # Convert the CSV data to a DataFrame
-data = pd.read_csv(io.StringIO(csv_data))
+data = pd.read_csv(io.StringIO(clean_csv))
 
 # Save the DataFrame to a CSV file
-data.to_csv("C:\\workspace\\Geneticai\\latest_individual_card_data.csv", index=False)
+data.to_csv("latest_individual_card_data.csv", index=False)
 
-print("\n📝 Final Result:\n", result)
+print("\nFinal Result:\n", result)
