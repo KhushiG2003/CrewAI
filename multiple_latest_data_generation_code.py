@@ -11,10 +11,10 @@ from langchain_community.tools.sql_database.tool import (
 import io
 import pandas as pd
 
-server = "inblrvm78094602"
-database = "GenAICreditcard"
-username = "Test"
-password = "Capgemini@1234"
+server = ""
+database = ""
+username = ""
+password = ""
 
 db_uri = f"mssql+pyodbc://{quote_plus(username)}:{quote_plus(password)}@{server}/{quote_plus(database)}?driver=ODBC+Driver+17+for+SQL+Server"
 
