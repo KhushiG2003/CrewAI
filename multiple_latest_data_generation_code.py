@@ -98,21 +98,22 @@ tables = ["ADDRESS","INDIVIDUAL_CARDHOLDER"]
 # Define the number of records to generate
 num_records = 50  # Specify the number of records you want to generate
 
+# Create a Crew
+crew = Crew(agents=[database_operator_agent,data_generator_agent], 
+            tasks=[understand_table_task,data_generation_task], 
+            # process=Process.sequential,
+            # planning=True,
+            verbose=True
+        )
+
 for table_name in tables:
-    # Create a Crew and Run
-    crew = Crew(agents=[database_operator_agent,data_generator_agent], 
-                tasks=[understand_table_task,data_generation_task], 
-                # process=Process.sequential,
-                # planning=True,
-                verbose=True
-            )
+    # Run crew
     result = crew.kickoff(inputs={'table_name':table_name, 'num_records':num_records})
 
     lines = str(result).strip().split('\n')
     csv_lines = [line for line in lines if ',' in line]
 
     clean_csv = "\n".join(csv_lines)
-
 
     # Convert the CSV data to a DataFrame
     data = pd.read_csv(io.StringIO(clean_csv))
